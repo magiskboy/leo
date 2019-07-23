@@ -7,10 +7,9 @@
 ### How to run?
 ```bash
 $ pip install git+https://github.com/nkthanh98/leo
-$ leo run mapping.csv --delay 3 --psrv https://listing-stg.teko.vn/api --els http://localhost:88
+$ leo run --delay 3 --psrv https://listing-stg.teko.vn/api --els http://localhost:88
 ```
 
 ### Stop background process?
 ```bash
 $ leo stop
-```
