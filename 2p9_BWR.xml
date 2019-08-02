@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LAYOUT name="Layout WF 2.9&quot;" profile="1">
+  <PANEL width="296" height="128" bpp="2" rotation="1">
+    <COLOR red="255" green="255" blue="255"/>
+    <COLOR red="0" green="0" blue="0"/>
+    <COLOR red="255" green="0" blue="0"/>
+
+    <DATA name="CIP" fieldnum="2"/>
+    <DATA name="Name" fieldnum="4"/>
+    <DATA name="OriginPrice" fieldnum="6"/>
+    <DATA name="SalePrice" fieldnum="7"/>
+
+    <REGION left="0" top="0" right="296" bottom="50" name="Name"
+            fg="1" invert="1" tmargin="8" bmargin="4" lmargin="2">
+      <FONT name="DejaVu Sans" height="26-2-12" boldness="750"/>
+      <TEXT halign="center" valign="center"
+            multiline="1" wordwrap="1" linegap="2" bold="1">%Name%</TEXT>
+    </REGION>
+    <REGION left="10" top="55" right="150" bottom="125" name="CIP"
+            lmargin="8">
+			<BARCODE halign="left" valign="center" type="Code 39" mode="set">%CIP%</BARCODE>
+		</REGION>
+    <REGION left="160" top="48" right="296" bottom="88" fg="3" name="Sale Price">
+      <FONT name="DejaVu Sans" height="24-2-14" boldness="900"/>
+      <TEXT halign="left" valign="center" bold="1">%SalePrice%</TEXT>
+    </REGION>
+    <REGION left="160" top="88" right="296" bottom="128" name="Origin Price">
+      <FONT name="DejaVu Sans" height="23-2-13"/>
+      <TEXT halign="left" valign="center" strikethrough="1">%OriginPrice%</TEXT>
+    </REGION>
+  </PANEL>
+</LAYOUT>	
