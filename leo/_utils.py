@@ -23,6 +23,7 @@ def is_task_already():
     """
     return os.path.exists(_config.PID)
 
+
 def make_pid_file() -> None:
     """Helper functon for make pid file
     """
@@ -41,6 +42,7 @@ def stop_handler(sig: int = None, frame=None) -> None:
 def split(items: List[str], chuck_size: int = 10) -> Iterable:
     """Split list into chucks
     """
+    items = list(items)
     while items:
         if len(items) < chuck_size:
             r_value = items
@@ -56,7 +58,7 @@ async def get_device_update(els_srv: str, sess: aiohttp.ClientSession) -> Iterab
     def device_filter(device):
         return device['IS_ACTIVE'] & bool(device['Inventory Barcode'] is not None)
 
-    url = urllib.parse.urljoin(els_srv, '/en/esl/ajax_api_getDeviceStatusBatch')
+    url = urllib.parse.urljoin(els_srv, _config.ELS_GET_DEVICE_API)
     payload = {'device_type': 'ED'}
     res = await sess.post(url, json=payload)
     data = await res.json()
@@ -77,34 +79,27 @@ async def update_coro(sess: aiohttp.ClientSession,
     """Update tags
     """
     try:
-        url_p_srv = urllib.parse.urljoin(addrs[0], _config.PRODUCT_API)
-        url_els_srv = urllib.parse.urljoin(addrs[1], _config.ELS_UPDATE_PRODUCT)
+        pull_data_url = urllib.parse.urljoin(addrs[0], _config.PRODUCT_API)
+        push_data_url = urllib.parse.urljoin(addrs[1], _config.ELS_UPDATE_PRODUCT_API)
         p_res = await sess.get(
-            url_p_srv,
+            pull_data_url,
             params=_make_pull_product_request(skus)
         )
         data = await p_res.json()
         if p_res.status != 200:
-            raise aiohttp.ClientPayloadError(data['message'])
+            raise aiohttp.ClientPayloadError(f"Call product server: {data['message']}")
         els_res = await sess.post(
-            url_els_srv,
+            push_data_url,
             json=_make_push_product_request(data['result']['products'], skus)
         )
         data = await els_res.json()
         if els_res.status != 200:
-            raise aiohttp.ClientError(data['ERROR'])
+            raise aiohttp.ClientError(f"Call els server: {data['ERROR']}")
     except aiohttp.ClientError as err:
         logging.error(str(err))
     else:
-        logging.debug('Push data success')
-
-
-def _make_pull_url(srv_ip: str) -> str:
-    return urllib.parse.urljoin(srv_ip, _config.PRODUCT_API)
-
-
-def _make_push_url(els_ip: str) -> str:
-    return urllib.parse.urljoin(els_ip, _config.ELS_UPDATE_PRODUCT)
+        logging.info('Push data success')
+        logging.info(data)
 
 
 def _make_pull_product_request(skus: List[str], channel: str = 'pv_showroom',
@@ -116,25 +111,32 @@ def _make_pull_product_request(skus: List[str], channel: str = 'pv_showroom',
     }
 
 
+def _make_others_field(*args):
+    args = map(lambda x: "" if x is None else str(x), args)
+    return ','.join(args)
+
+
 def _make_push_product_request(product_update: List[dict],
                                skus: List[str]) -> Dict[str, Any]:
     items = []
     for product in product_update:
         if product['sku'] in skus:
             item = {
-                'Item No': product['sku'],
-                'Barcode': product['sku'],
-                'Item Name': product['name'],
-                'Sell Price': product['price']['sellPrice'],
-                'Sale Price': product['price']['supplierSalePrice'],
-                'Other Fields': '',
-                'Description': product['seoInfo']['shortDescription'],
-                'Layout Index': 0,
+                'No': product['sku'],
+                'Barcode': str(product['sku']),
+                'Layout Index': str(0),
+                'Name': product['name'].split('/')[-1],
+                'Area': 'None',
+                'Other Fields': _make_others_field(
+                    product['price']['sellPrice'],
+                    product['price']['supplierSalePrice'],
+                    product['seoInfo']['shortDescription']
+                ),
                 'action': 'M'
             }
             items.append(item)
     data = {
-        'Item List': items
+        'Inventory': items
     }
 
     return data
