@@ -1,11 +1,13 @@
 """
 Author: Nguyen Khac Thanh
 """
+import os
 import click
 
 from leo import (
     _service,
-    _utils
+    _utils,
+    _config
 )
 
 
@@ -23,14 +25,12 @@ def cli() -> None:
 def run(delay: int, detach: bool, psrv: str, els: str) -> None:
     """Sync data product for tags
     """
-    if _utils.is_task_already():
-        click.echo('Task already')
+    os.remove(_config.PID)
+    pid = _service.run(delay, detach, (psrv, els))
+    if pid:
+        click.echo(f'Task is running in background with pid {pid}')
     else:
-        pid = _service.run(delay, detach, (psrv, els))
-        if pid:
-            click.echo(f'Task is running in background with pid {pid}')
-        else:
-            click.echo('Run task fail')
+        click.echo('Run task fail')
 
 
 @cli.command()

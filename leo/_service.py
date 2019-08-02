@@ -22,7 +22,6 @@ from leo import (
 def run(delay: int, detach: bool, addrs: Tuple[str, str]) -> Union[None, int]:
     """Setup before run process
     """
-    os.remove(_config.PID)
     if detach:
         s_process = subprocess.Popen([_config.LEO_COMMAND, 'run',
                                       '--delay', str(delay),
